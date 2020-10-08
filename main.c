@@ -1,8 +1,10 @@
 #include <ncurses.h>
 #include <string.h>
 #include <unistd.h>  /* only for sleep() */
+#include <stdio.h>
+#include <stdlib.h>
 
-#define CHAR_LIMIT 15
+#define CHAR_LIMIT 30
 
 
 typedef struct word{
@@ -13,13 +15,17 @@ typedef struct word{
     char next_letter;
 } Word;
 
-
+FILE *word_file;
+WINDOW * win;
 Word word_list[30];
 int word_count = 0;
 
+int score = 0;
 
-int add_word(char word[], int pos_x, int pos_y){
+
+int add_word(int pos_x, int pos_y){
     Word new_word;
+    char aux_string[CHAR_LIMIT];
 
     new_word.pos_x = pos_x;
     new_word.pos_y = pos_y;
@@ -27,7 +33,9 @@ int add_word(char word[], int pos_x, int pos_y){
 
     new_word.counter = 0;
 
-    strcpy(new_word.text, word);
+    fscanf(word_file, "%s", new_word.text);
+    //printf("%s", aux_string);
+    //strcpy(new_word.text, aux_string);
     new_word.next_letter = new_word.text[new_word.counter];
 
     word_list[word_count] = new_word;
@@ -54,20 +62,22 @@ int print_word(int word_index){
         color_index = word_list[word_index].counter; 
 
     }
-    move(word_list[word_index].pos_x, word_list[word_index].pos_y);
+    wmove(win, word_list[word_index].pos_x, word_list[word_index].pos_y);
     while(word_list[word_index].text[aux] != '\0'){
         if(aux < color_index){
-            attron(COLOR_PAIR(1));
-            printw("%c", word_list[word_index].text[aux]);
-            attroff(COLOR_PAIR(1));
+            wattron(win, COLOR_PAIR(1));
+            wprintw(win, "%c", word_list[word_index].text[aux]);
+            wattroff(win, COLOR_PAIR(1));
         }
         else{
-            printw("%c", word_list[word_index].text[aux]);
+            wprintw(win,"%c", word_list[word_index].text[aux]);
         }
         
         aux += 1;
     }
+    
 
+    wrefresh(win);
 
     return 0;
 }
@@ -82,49 +92,86 @@ int move_words(){
     return 0;
 }
 
-int check_letter(char letter){
+int check_letter(char letter, int user_counter){
     int aux;
     for (aux = 0; aux < word_count; aux++){
         if(word_list[aux].next_letter == letter){
-            word_list[aux].counter += 1;
-            word_list[aux].next_letter = word_list[aux].text[word_list[aux].counter];
-            word_list[aux].has_green = true;
+            if(word_list[aux].counter == user_counter){
+                word_list[aux].counter += 1;
+                word_list[aux].next_letter = word_list[aux].text[word_list[aux].counter];
+                word_list[aux].has_green = true;
+            }
+        }
+        else{
+            if(word_list[aux].has_green){
+                word_list[aux].has_green = false;
+                word_list[aux].counter = 0;
+                word_list[aux].next_letter = word_list[aux].text[word_list[aux].counter];
+                 
+            }
+        }
+    }
+    return 0;
+}
+
+int check_completion(){
+    int aux, aux1;
+    for(aux = 0; aux < word_count; aux++){
+        if(word_list[aux].counter == strlen(word_list[aux].text)){
+            score += 1;
+            /* Remove the current word from the list */
+            for(aux1 = aux; aux1 < word_count; aux1++){
+                word_list[aux1] = word_list[aux1 + 1];
+            }
+            word_count -= 1;
+            werase(win);
+            box(win, 0, 0);
+            wrefresh(win);
         }
     }
 
+    box(win, 0, 0);
+    wrefresh(win);
 
-    return 0;
+
 }
 
 int main(void){
     int aux;
-    char my_word[] = "hazcoper";
-    char my_word2[] = "test";
-    char my_word3[] = "brown";
-    char my_word4[] = "jumped";
-    char my_word5[] = "lazy";
-    char my_word6[] = "dog";
 
     char pressed_key;
     int counter = 0;
+
+
     initscr();
+
 
     start_color();
     init_pair(1,COLOR_GREEN,COLOR_BLACK);
     cbreak();
     noecho();
+    curs_set(0);
     nodelay(stdscr, TRUE);
-    add_word(my_word, 0,10);
-    add_word(my_word2, 10,7);
-    add_word(my_word3, 15,2);
-    add_word(my_word4, 2,10);
-    add_word(my_word5, 7,25);
-    add_word(my_word6, 9,14);
-
-
-    //make de part to draw all of the words
-
     scrollok(stdscr, TRUE);
+
+    word_file = fopen("word.txt", "r");
+    add_word(5,10);
+    add_word(10,7);
+    add_word(15,2);
+    add_word(2,10);
+    add_word(7,25);
+    add_word(9,14);
+    add_word(18,30);    
+
+
+
+    win = newwin(20, 50, 0,0);
+    refresh();
+
+    box(win, 0, 0);
+    wrefresh(win);
+
+    
 
     for(aux = 0; aux < word_count; aux++){
         print_word(aux);
@@ -134,18 +181,30 @@ int main(void){
     while (1) {
         if (kbhit()) {
             //this means I got a character, incriment counter and see if it is the right word
+            
             pressed_key = getch();
+            if(pressed_key == 32){
+                //spacebar was pressed, check to see if there is any complete word
+                counter = -1;
+                check_completion();
+                
+            }
+            check_letter(pressed_key, counter);
 
-            check_letter(pressed_key);
 
-
-            erase();
             for(aux = 0; aux < word_count; aux++){
                 print_word(aux);
             }
-            refresh();
+            wmove(win, 19, counter+1);
+            wprintw(win, "%c", pressed_key);
+            counter += 1;
 
         }
+        wmove(win,1,1);
+        wprintw(win,"%d", score);
+        wrefresh(win);
     }
+    
+    endwin();
 }
 
