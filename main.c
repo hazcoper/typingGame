@@ -115,15 +115,17 @@ int check_letter(char letter, int user_counter){
 }
 
 int check_completion(){
-    int aux, aux1;
+    int aux, aux1, pos_y;
     for(aux = 0; aux < word_count; aux++){
         if(word_list[aux].counter == strlen(word_list[aux].text)){
             score += 1;
+            word_list[aux].pos_y = pos_y;
             /* Remove the current word from the list */
             for(aux1 = aux; aux1 < word_count; aux1++){
                 word_list[aux1] = word_list[aux1 + 1];
             }
             word_count -= 1;
+            add_word(pos)
             werase(win);
             box(win, 0, 0);
             wrefresh(win);
@@ -134,6 +136,14 @@ int check_completion(){
     wrefresh(win);
 
 
+}
+
+int generate_random(int l, int r) { //this will generate random number in range l and r
+    int i;
+   
+    int rand_num = (rand() % (r - l + 1)) + l;
+   
+    return rand_num;
 }
 
 int main(void){
@@ -180,7 +190,7 @@ int main(void){
             //this means I got a character, incriment counter and see if it is the right word
             
             pressed_key = getch();
-            if(pressed_key == 32){
+            if(pressed_key == 32 || pressed_key == 10){
                 //spacebar was pressed, check to see if there is any complete word
                 counter = -1;
                 check_completion();
