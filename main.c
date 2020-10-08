@@ -24,19 +24,18 @@ int word_count = 0;
 int score = 0;
 
 
-int add_word(int pos_x, int pos_y){
+int add_word(int pos_y){
     Word new_word;
     char aux_string[CHAR_LIMIT];
 
-    new_word.pos_x = pos_x;
-    new_word.pos_y = pos_y;
+    new_word.pos_x = pos_y;
     new_word.has_green = false;
 
     new_word.counter = 0;
 
     fscanf(word_file, "%s", new_word.text);
-    //printf("%s", aux_string);
-    //strcpy(new_word.text, aux_string);
+    new_word.pos_y = 50 - strlen(new_word.text) - 1;
+
     new_word.next_letter = new_word.text[new_word.counter];
 
     word_list[word_count] = new_word;
@@ -157,14 +156,10 @@ int main(void){
     scrollok(stdscr, TRUE);
 
     word_file = fopen("word.txt", "r");
-    add_word(5,10);
-    add_word(10,7);
-    add_word(15,2);
-    add_word(2,10);
-    add_word(7,25);
-    add_word(9,14);
-    add_word(18,30);    
-
+    add_word(5);
+    add_word(2);
+    add_word(10);
+    add_word(7);
 
 
     win = newwin(20, 50, 0,0);
@@ -193,26 +188,31 @@ int main(void){
             }
             check_letter(pressed_key, counter);
 
-            //check time
-            end = clock();
-            time_dif = (end - start) / CLOCKS_PER_SEC;
-            if (time_dif != 10){
-                move_words();
-                exit(2);
-                start = clock();
-            }
 
-            for(aux = 0; aux < word_count; aux++){
-                print_word(aux);
-            }
+
+
             wmove(win, 19, counter+1);
             wprintw(win, "%c", pressed_key);
             counter += 1;
 
         }
+        
+        for(aux = 0; aux < word_count; aux++){
+            print_word(aux);
+        }
         wmove(win,1,1);
         wprintw(win,"%d", score);
         wrefresh(win);
+        //check time
+        end = clock();
+        time_dif = (end - start) / CLOCKS_PER_SEC;
+        if (time_dif > 0.7){
+            move_words();
+            start = clock();
+            werase(win);
+            box(win, 0, 0);
+
+        }
     }
     
     endwin();

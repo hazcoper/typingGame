@@ -11,9 +11,9 @@ int main(){
 
     clock_t start, end;
     float time_dif;
-
+    printf("starting the program\n");
     start = clock();
-    while(1)
+    while(1){
         //check time
         end = clock();
         time_dif = (end - start) / CLOCKS_PER_SEC;
@@ -21,6 +21,6 @@ int main(){
             printf("Hello \n");
             start = clock();
         }
-
+    }
     return 0;
 }
