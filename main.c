@@ -3,6 +3,7 @@
 #include <unistd.h>  /* only for sleep() */
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define CHAR_LIMIT 30
 
@@ -138,7 +139,8 @@ int check_completion(){
 
 int main(void){
     int aux;
-
+    clock_t start, end;
+    float time_dif;
     char pressed_key;
     int counter = 0;
 
@@ -171,13 +173,13 @@ int main(void){
     box(win, 0, 0);
     wrefresh(win);
 
-    
+
 
     for(aux = 0; aux < word_count; aux++){
         print_word(aux);
     }
 
-
+    start = clock();
     while (1) {
         if (kbhit()) {
             //this means I got a character, incriment counter and see if it is the right word
@@ -191,6 +193,14 @@ int main(void){
             }
             check_letter(pressed_key, counter);
 
+            //check time
+            end = clock();
+            time_dif = (end - start) / CLOCKS_PER_SEC;
+            if (time_dif != 10){
+                move_words();
+                exit(2);
+                start = clock();
+            }
 
             for(aux = 0; aux < word_count; aux++){
                 print_word(aux);
