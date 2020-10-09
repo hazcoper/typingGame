@@ -9,7 +9,7 @@
 
 
 typedef struct word{
-    int pos_x, pos_y;
+    int pos_x, pos_y, len;
     bool has_green;
     int counter;
     char text[CHAR_LIMIT];
@@ -22,20 +22,61 @@ Word word_list[30];
 int word_count = 0;
 
 int score = 0;
+int last_line = 0;
+
+/* Receives a line a determines if a word fits there or not */
+bool is_possible(int len, int line){
+    int aux1, chr; 
+    
+    for(aux1=48; aux1 > 30; aux1--){
+        wmove(win, line,aux1);
+        chr = winch(win);
+        if(chr != 32){
+            //means there was a character, move on to the next iteration
+            return false;
+        }
+    }
+    return true;
+
+}
+
+int find_line(int len){
+    int line, aux;
+
+    for(aux=1; aux<20; aux++){
+        if(is_possible(len, aux)){
+            return aux;
+        }
+    }
+    return 0;
+}
 
 
-int add_word(int pos_y){
+int add_word(){
     Word new_word;
     char aux_string[CHAR_LIMIT];
+    int len, aux, aux1, height, y;
 
-    new_word.pos_x = pos_y;
+    //new_word.pos_x = pos_y;
     new_word.has_green = false;
 
     new_word.counter = 0;
 
     fscanf(word_file, "%s", new_word.text);
-    new_word.pos_y = 50 - strlen(new_word.text) - 1;
+    len = strlen(new_word.text);
+    new_word.len = len;
+    
+    if(word_count == 0){
+        new_word.pos_y = 1;    
+    }
+    else{
+        aux = find_line(len);
+        new_word.pos_y = aux;
+    }
 
+
+
+    new_word.pos_x = 50 - 1 - len;
     new_word.next_letter = new_word.text[new_word.counter];
 
     word_list[word_count] = new_word;
@@ -62,7 +103,7 @@ int print_word(int word_index){
         color_index = word_list[word_index].counter; 
 
     }
-    wmove(win, word_list[word_index].pos_x, word_list[word_index].pos_y);
+    wmove(win, word_list[word_index].pos_y, word_list[word_index].pos_x);
     while(word_list[word_index].text[aux] != '\0'){
         if(aux < color_index){
             wattron(win, COLOR_PAIR(1));
@@ -87,7 +128,7 @@ int move_words(){
     int aux;
 
     for(aux = 0; aux < word_count; aux++){
-        word_list[aux].pos_y -= 1;
+        word_list[aux].pos_x -= 1;
     }
     return 0;
 }
@@ -119,13 +160,15 @@ int check_completion(){
     for(aux = 0; aux < word_count; aux++){
         if(word_list[aux].counter == strlen(word_list[aux].text)){
             score += 1;
+            last_line = word_list[aux].pos_y;
+
             word_list[aux].pos_y = pos_y;
+            
             /* Remove the current word from the list */
             for(aux1 = aux; aux1 < word_count; aux1++){
                 word_list[aux1] = word_list[aux1 + 1];
             }
             word_count -= 1;
-            add_word(pos)
             werase(win);
             box(win, 0, 0);
             wrefresh(win);
@@ -148,7 +191,7 @@ int generate_random(int l, int r) { //this will generate random number in range 
 
 int main(void){
     int aux;
-    clock_t start, end;
+    clock_t start, start1, end, end1;
     float time_dif;
     char pressed_key;
     int counter = 0;
@@ -166,10 +209,7 @@ int main(void){
     scrollok(stdscr, TRUE);
 
     word_file = fopen("word.txt", "r");
-    add_word(5);
-    add_word(2);
-    add_word(10);
-    add_word(7);
+    add_word();
 
 
     win = newwin(20, 50, 0,0);
@@ -185,6 +225,7 @@ int main(void){
     }
 
     start = clock();
+    start1 = clock();
     while (1) {
         if (kbhit()) {
             //this means I got a character, incriment counter and see if it is the right word
@@ -194,10 +235,10 @@ int main(void){
                 //spacebar was pressed, check to see if there is any complete word
                 counter = -1;
                 check_completion();
+                add_word();
                 
             }
             check_letter(pressed_key, counter);
-
 
 
 
@@ -223,6 +264,7 @@ int main(void){
             box(win, 0, 0);
 
         }
+
     }
     
     endwin();
