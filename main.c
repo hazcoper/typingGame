@@ -27,28 +27,38 @@ int last_line = 0;
 /* Receives a line a determines if a word fits there or not */
 bool is_possible(int len, int line){
     int aux1, chr; 
-    
-    for(aux1=48; aux1 > 30; aux1--){
-        wmove(win, line,aux1);
-        chr = winch(win);
-        if(chr != 32){
-            //means there was a character, move on to the next iteration
-            return false;
+    len = len + 1; 
+    //vou receber uma linha, vou palavra a palavra ver se nao tem nada nessa linha
+    for(aux1=0; aux1 < word_count; aux1++){
+        //nao pode ter nada entre 49-len e 49, portanto se pos_x estiver nesse range ou pos_x + len
+        if(word_list[aux1].pos_y == line){
+            if(word_list[aux1].pos_x+word_list[aux1].len > 49 - len){
+                return false;
+                
+            }
         }
     }
+    //no there is no word in that line
     return true;
+}
 
+int generate_random(int l, int r) { //this will generate random number in range l and r
+    int i;
+   
+    int rand_num = (rand() % (r - l + 1)) + l;
+   
+    return rand_num;
 }
 
 int find_line(int len){
     int line, aux;
-
-    for(aux=1; aux<20; aux++){
-        if(is_possible(len, aux)){
-            return aux;
-        }
+    //get a random line, check if there is space in that random line, if not try again
+    aux = generate_random(1,19);
+    while(!is_possible(len, aux)){
+        //get a random number, set it to aux
+        aux = generate_random(1,19);
     }
-    return 0;
+    return aux;
 }
 
 
@@ -181,13 +191,7 @@ int check_completion(){
 
 }
 
-int generate_random(int l, int r) { //this will generate random number in range l and r
-    int i;
-   
-    int rand_num = (rand() % (r - l + 1)) + l;
-   
-    return rand_num;
-}
+
 
 int main(void){
     int aux;
