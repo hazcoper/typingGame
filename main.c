@@ -133,12 +133,30 @@ int print_word(int word_index){
     return 0;
 }
 
+
+int end_game(){
+
+    while(1){
+        wmove(win, 15,15);
+        wprintw(win, "END GAME");
+        wmove(win, 16,16);
+        wprintw(win, "SCORE: %d", score);
+        wrefresh(win);
+    }
+    return 0;
+}
+
+
 /* Move all of the words one block to the left and checks to see if any have gotten to the limtis */
 int move_words(){
     int aux;
 
     for(aux = 0; aux < word_count; aux++){
         word_list[aux].pos_x -= 1;
+        if(word_list[aux].pos_x < 2){
+            //Game has eneded
+            end_game();
+        }
     }
     return 0;
 }
