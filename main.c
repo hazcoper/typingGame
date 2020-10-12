@@ -51,12 +51,18 @@ int generate_random(int l, int r) { //this will generate random number in range 
 }
 
 int find_line(int len){
-    int line, aux;
+    int line, aux, counter;
     //get a random line, check if there is space in that random line, if not try again
     aux = generate_random(1,19);
+    counter = 0;
     while(!is_possible(len, aux)){
         //get a random number, set it to aux
-        aux = generate_random(1,19);
+        aux = generate_random(1,18);
+        counter ++;
+        if(counter == 20){
+            //means that there is no available line
+            return 0;
+        }
     }
     return aux;
 }
@@ -81,6 +87,7 @@ int add_word(){
     }
     else{
         aux = find_line(len);
+        if(aux == 0)
         new_word.pos_y = aux;
     }
 
@@ -279,7 +286,7 @@ int main(void){
         //check time
         end = clock();
         time_dif = (end - start) / CLOCKS_PER_SEC;
-        if (time_dif > 0.7){
+        if (time_dif > 0.6){
             move_words();
             start = clock();
             werase(win);
