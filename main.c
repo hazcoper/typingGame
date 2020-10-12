@@ -53,7 +53,7 @@ int generate_random(int l, int r) { //this will generate random number in range 
 int find_line(int len){
     int line, aux, counter;
     //get a random line, check if there is space in that random line, if not try again
-    aux = generate_random(1,19);
+    aux = generate_random(1,18);
     counter = 0;
     while(!is_possible(len, aux)){
         //get a random number, set it to aux
@@ -67,7 +67,8 @@ int find_line(int len){
     return aux;
 }
 
-
+//Add a buffer of words for when a word cant be added for it to add to the buffer - change return 0 in this funciton 
+//Add threads to read from the buffer and add to the words at different times
 int add_word(){
     Word new_word;
     char aux_string[CHAR_LIMIT];
@@ -87,8 +88,11 @@ int add_word(){
     }
     else{
         aux = find_line(len);
-        if(aux == 0)
+        if(aux == 0){
+            return 0;
+        }
         new_word.pos_y = aux;
+
     }
 
 
